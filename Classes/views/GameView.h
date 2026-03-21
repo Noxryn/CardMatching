@@ -1,0 +1,2 @@
+// сно╥
+#pragma once

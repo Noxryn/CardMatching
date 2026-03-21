@@ -1,0 +1,2 @@
+// ¿¨ÅÆµã»÷
+#pragma once
