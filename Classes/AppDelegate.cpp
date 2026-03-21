@@ -23,16 +23,18 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
-#include "CardMatchingScene.h"
+#include "CardMatchingScene.h" // 引入我们要运行的第一个场景头文件
 
-// #define USE_AUDIO_ENGINE 1
-// #define USE_SIMPLE_AUDIO_ENGINE 1
+ // 定义使用的音频引擎宏
+ // #define USE_AUDIO_ENGINE 1
+ // #define USE_SIMPLE_AUDIO_ENGINE 1
 
+ // 编译检查：不能同时使用两种音频引擎
 #if USE_AUDIO_ENGINE && USE_SIMPLE_AUDIO_ENGINE
 #error "Don't use AudioEngine and SimpleAudioEngine at the same time. Please just select one in your game!"
 #endif
 
+// 根据宏定义包含相应的音频引擎头文件和命名空间
 #if USE_AUDIO_ENGINE
 #include "audio/include/AudioEngine.h"
 using namespace cocos2d::experimental;
@@ -41,19 +43,25 @@ using namespace cocos2d::experimental;
 using namespace CocosDenshion;
 #endif
 
-USING_NS_CC;
+USING_NS_CC; // 使用 Cocos2d-x 命名空间
 
+// 定义几种预设的分辨率尺寸
+// designResolutionSize: 设计分辨率，逻辑坐标系的基准
 static cocos2d::Size designResolutionSize = cocos2d::Size(480, 320);
+// smallResolutionSize: 小屏设备参考分辨率
 static cocos2d::Size smallResolutionSize = cocos2d::Size(480, 320);
+// mediumResolutionSize: 中屏设备参考分辨率 (如 iPad 1/2)
 static cocos2d::Size mediumResolutionSize = cocos2d::Size(1024, 768);
+// largeResolutionSize: 大屏设备参考分辨率 (如 iPad Retina)
 static cocos2d::Size largeResolutionSize = cocos2d::Size(2048, 1536);
 
 AppDelegate::AppDelegate()
 {
 }
 
-AppDelegate::~AppDelegate() 
+AppDelegate::~AppDelegate()
 {
+    // 析构时释放音频引擎资源
 #if USE_AUDIO_ENGINE
     AudioEngine::end();
 #elif USE_SIMPLE_AUDIO_ENGINE
@@ -61,86 +69,102 @@ AppDelegate::~AppDelegate()
 #endif
 }
 
-// if you want a different context, modify the value of glContextAttrs
-// it will affect all platforms
-// 上下文
+// 如果需要不同的 OpenGL 上下文配置，可以修改 glContextAttrs
+// 这会影响所有平台
+// 上下文初始化
 void AppDelegate::initGLContextAttrs()
 {
-    // set OpenGL context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
-    GLContextAttrs glContextAttrs = {8, 8, 8, 8, 24, 8, 0};
+    // 设置 OpenGL 上下文属性: 
+    // 顺序为: red(红), green(绿), blue(蓝), alpha(透明度), depth(深度缓冲), stencil(模板缓冲), multisamplesCount(多重采样数)
+    GLContextAttrs glContextAttrs = { 8, 8, 8, 8, 24, 8, 0 };
 
     GLView::setGLContextAttrs(glContextAttrs);
 }
 
-// if you want to use the package manager to install more packages,  
-// don't modify or remove this function
+// 如果你想使用包管理器安装更多包，请不要修改或删除此函数
 static int register_all_packages()
 {
-    return 0; //flag for packages manager
+    return 0; // 包管理器的标志位
 }
 
+// 应用启动完成后的初始化逻辑（核心部分）
 bool AppDelegate::applicationDidFinishLaunching() {
-    // initialize director
+    // 1. 初始化导演类 (Director)，它是整个游戏的控制中枢
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
-    if(!glview) {
+
+    // 如果还没有创建 OpenGL 视图，则创建它
+    if (!glview) {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-        glview = GLViewImpl::createWithRect("CardMatching", cocos2d::Rect(0, 0, 1080,2080),0.5); // 设置窗口大小 1080*2080
+        // 桌面端：创建一个指定大小和位置的窗口
+        // 窗口标题："CardMatching", 位置(0,0), 大小 1080x2080, 缩放因子 0.5 (为了在屏幕上显示得下)
+        glview = GLViewImpl::createWithRect("CardMatching", cocos2d::Rect(0, 0, 1080, 2080), 0.5);
 #else
+        // 移动端：创建全屏视图
         glview = GLViewImpl::create("CardMatching");
 #endif
         director->setOpenGLView(glview);
     }
 
-    // turn on display FPS
+    // 开启显示 FPS (帧率) 统计信息 (左上角)
     director->setDisplayStats(true);
 
-    // set FPS. the default value is 1.0/60 if you don't call this
+    // 设置动画间隔，即目标帧率。默认是 1.0/60 (60 FPS)
     director->setAnimationInterval(1.0f / 60);
 
-	// 设置设计分辨率
     // glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
-	// 设置设计分辨率为1080x2080，宽度固定，适配不同高度的屏幕
-   // glview = GLViewImpl::createWithRect("Test", cocos2d::Rect(0, 0, 1080, 2080), 0.5);
+
+    // 设置设计分辨率为 1080x2080 保持宽度固定为 1080，高度根据屏幕比例自动调整。
     glview->setDesignResolutionSize(1080, 2080, ResolutionPolicy::FIXED_WIDTH);
+
     auto frameSize = glview->getFrameSize();
-    // if the frame's height is larger than the height of medium size.
+
+    // 根据屏幕物理尺寸动态调整内容缩放因子
+
+    // 如果屏幕高度大于中屏参考高度 (768)
     if (frameSize.height > mediumResolutionSize.height)
-    {        
-        director->setContentScaleFactor(MIN(largeResolutionSize.height/designResolutionSize.height, largeResolutionSize.width/designResolutionSize.width));
+    {
+        // 计算大屏的缩放比例，取宽高比的最小值，防止拉伸
+        director->setContentScaleFactor(MIN(largeResolutionSize.height / designResolutionSize.height, largeResolutionSize.width / designResolutionSize.width));
     }
-    // if the frame's height is larger than the height of small size.
+    // 如果屏幕高度大于小屏参考高度 (320) 但小于等于中屏
     else if (frameSize.height > smallResolutionSize.height)
-    {        
-        director->setContentScaleFactor(MIN(mediumResolutionSize.height/designResolutionSize.height, mediumResolutionSize.width/designResolutionSize.width));
+    {
+        // 计算中屏的缩放比例
+        director->setContentScaleFactor(MIN(mediumResolutionSize.height / designResolutionSize.height, mediumResolutionSize.width / designResolutionSize.width));
     }
-    // if the frame's height is smaller than the height of medium size.
+    // 如果屏幕很小
     else
-    {        
-        director->setContentScaleFactor(MIN(smallResolutionSize.height/designResolutionSize.height, smallResolutionSize.width/designResolutionSize.width));
+    {
+        // 计算小屏的缩放比例
+        director->setContentScaleFactor(MIN(smallResolutionSize.height / designResolutionSize.height, smallResolutionSize.width / designResolutionSize.width));
     }
 
+    // 注册所有必要的包
     register_all_packages();
 
     ////////////////////////////
-
+    
+    // 创建并获取第一个场景
     auto scene = CardMatching::createScene();
+
+
 
 
     //////////////////////////////
 
-
-    
-    // run
+    // 运行场景：导演类开始渲染和更新这个场景
     director->runWithScene(scene);
 
     return true;
 }
 
-// This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
+// 当应用进入后台时调用
 void AppDelegate::applicationDidEnterBackground() {
+    // 停止动画循环，节省电量和 CPU
     Director::getInstance()->stopAnimation();
 
+    // 暂停音频播放
 #if USE_AUDIO_ENGINE
     AudioEngine::pauseAll();
 #elif USE_SIMPLE_AUDIO_ENGINE
@@ -149,10 +173,12 @@ void AppDelegate::applicationDidEnterBackground() {
 #endif
 }
 
-// this function will be called when the app is active again
+// 当应用从后台返回前台时调用
 void AppDelegate::applicationWillEnterForeground() {
+    // 恢复动画循环
     Director::getInstance()->startAnimation();
 
+    // 恢复音频播放
 #if USE_AUDIO_ENGINE
     AudioEngine::resumeAll();
 #elif USE_SIMPLE_AUDIO_ENGINE
