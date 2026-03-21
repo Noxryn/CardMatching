@@ -81,20 +81,20 @@ bool CardMatching::init()
         this->addChild(label, 1);
     }
 
-    // 添加一张名为 "3.png" 的图片作为背景或展示图 (原注释说是 splash screen)
-    auto sprite = Sprite::create("3.png");
-    if (sprite == nullptr)
-    {
-        problemLoading("'3.png'");
-    }
-    else
-    {
-        // 将图片定位在屏幕正中心
-        sprite->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+    //// 添加一张名为 "3.png" 的图片作为背景或展示图 (原注释说是 splash screen)
+    //auto sprite = Sprite::create("3.png");
+    //if (sprite == nullptr)
+    //{
+    //    problemLoading("'3.png'");
+    //}
+    //else
+    //{
+    //    // 将图片定位在屏幕正中心
+    //    sprite->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
 
-        // 将图片作为子节点添加到当前层，层级为 0 (在标签和菜单下方)
-        this->addChild(sprite, 0);
-    }
+    //    // 将图片作为子节点添加到当前层，层级为 0 (在标签和菜单下方)
+    //    this->addChild(sprite, 0);
+    //}
 
     // 初始化成功
     return true;
