@@ -331,7 +331,7 @@ void GameController::showVictoryMessage()
     label->setPosition(Vec2(540, 1040));  // 屏幕中央
     label->setTextColor(Color4B::YELLOW);
     label->setTag(VICTORY_LABEL_TAG);
-    _gameView->addChild(label, 100);  // z-order最高，显示在最上层
+    _gameView->addChild(label, 100);  
 
     // 添加缩放动画
     auto scaleUp = ScaleTo::create(0.3f, 1.5f);
